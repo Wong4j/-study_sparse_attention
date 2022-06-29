@@ -1,4 +1,4 @@
-# Study Sparse Attention
+# Triton block sparse
 
 ## Getting started
 Setup environment:
@@ -91,6 +91,48 @@ SDDMM + FP32 results:
 | 4096   | 1.85     | 3.59      |6.489973  | 2.64      |
 | 6144   | 1.86     | 3.72      |7.343267  | 3.27      |
 
+# Vector Sparse
 
+## Setup environment
+Please follow [https://github.com/apuaaChen/vectorSparse](https://github.com/apuaaChen/vectorSparse).
 
+## Test SDDMM/SpMM
+The authors provide scripts to produce all the results in their paper.    
+I currently don't have time to complete a script to automatically compare vector sparse with Triton's block sparse.    
+So I manually change the code and get a few useful results.
 
+Here is the example:    
+Firstly, choose a 95%-sparsity matrix from dataset (`dlmc/rn50/magnitude_pruning/0.95/*.smtx`).    
+```
+head -n 1 <workspace>/dlmc/rn50/magnitude_pruning/0.95/bottleneck_1_block_group1_1_1.smtx
+> 64, 256, 819
+```
+The first line of the file shows M=64, N=256, nnz=819.
+
+Then replace the [job_launcher.py#L53](https://github.com/apuaaChen/vectorSparse/blob/29f9c129927207c8553a07c43396caee480a55be/job_launcher.py#L53) with:
+```python
+benchmark = '<workspace>/dlmc/rn50/magnitude_pruning/0.95/bottleneck_1_block_group1_1_1.smtx'
+```
+Then use `cudaEvent` to measure the flops at [sddmm_benchmark.cpp#L257](https://github.com/apuaaChen/vectorSparse/blob/29f9c129927207c8553a07c43396caee480a55be/sddmm_benchmark.cpp#L257):
+```cpp
+            int repeat = 1000;
+            cudaEventRecord(start);
+            for(int i=0; i<repeat; i++)
+                sddmm::wmmaSddmm(m_vec, k, n, ...);
+            cudaEventRecord(stop);
+            cudaEventSynchronize(stop);
+            float ms = 0.0;
+            cudaEventElapsedTime(&ms, start, stop);
+            // manually set nnz = 819
+            float num_flops = 2.0 * k * (819 * 8 * 1) * repeat;
+            float TFLOPS = num_flops / (ms / 1e3) * 1e-12;
+            std::cout << "TFLOPS: " << TFLOPS << std::endl;
+```
+Compile cuda code:
+```shell
+bash setup.sh
+```
+Run the test:
+```shell
+python3 job_launcher.py --start 0 --end 2 --dimK 256 --dimV 8 --kernel wmma --sort --job sddmm --sddmm_alg mma_arch --precision half
+```
