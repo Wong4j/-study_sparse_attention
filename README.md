@@ -1,7 +1,5 @@
 # Study Sparse Attention
 
-# Study Sparse Attention
-
 ## Getting started
 Setup environment:
 ```
