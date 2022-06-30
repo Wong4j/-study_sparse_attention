@@ -16,7 +16,8 @@ python test_block_sdd_dsd.py
 ```
 
 Results looks like:   
-![image](example_results/example_results.png)    
+![image](https://github.com/Wong4j/study_sparse_attention/blob/main/example_results/example_results.png)    
+
 
 
 Triton use TF32 by deault.    
