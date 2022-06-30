@@ -16,7 +16,7 @@ python test_block_sdd_dsd.py
 ```
 
 Results looks like:   
-![image](https://github.com/Wong4j/study_sparse_attention/blob/main/example_results/example_results.png)    
+![image](example_results/example_results.png)    
 
 
 
