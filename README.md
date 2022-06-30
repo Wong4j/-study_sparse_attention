@@ -16,7 +16,7 @@ python test_block_sdd_dsd.py
 ```
 
 Results looks like:   
-![image](result_images/picture.png)    
+![image](Picture4.png)    
 
 
 Triton use TF32 by deault.    
